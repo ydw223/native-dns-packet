@@ -182,6 +182,22 @@ function writeHeader(buff, packet) {
 }
 
 function writeTruncate(buff, packet, section, val) {
+  packet.answer = [];
+  packet.authority = [];
+  packet.additional = [];
+
+  // TCP Buffer Overflow
+  if (buff.length > 4096) {
+      packet.header.aa = 0;
+      packet.header.rcode = consts.NAME_TO_RCODE.FORMERR;
+  // UDP Buffer Overflow
+  } else {
+      packet.header.tc = 1;
+  }
+  buff.seek(0);
+
+  return writeHeader(buff, packet);
+
   // XXX FIXME TODO truncation is currently done wrong.
   // Quote rfc2181 section 9
   // The TC bit should not be set merely because some extra information
@@ -413,7 +429,13 @@ Packet.write = function(buff, packet) {
           state = writeHeader(buff, packet);
           break;
         case WRITE_TRUNCATE:
-          state = writeTruncate(buff, packet, section, last_resource);
+          val = null;
+          section = null;
+          count = null;
+          rdata = null;
+          last_resource = null;
+          label_index = {};
+          state = writeTruncate(buff, packet, section, val);
           break;
         case WRITE_QUESTION:
           state = writeQuestion(buff, packet.question[0], label_index);
