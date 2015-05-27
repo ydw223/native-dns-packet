@@ -103,7 +103,7 @@ function nameUnpack(buff) {
 }
 
 function namePack(str, buff, index) {
-  var offset, dot, part;
+  var offset, dot, part, length;
 
   while (str) {
     if (index[str]) {
@@ -111,7 +111,10 @@ function namePack(str, buff, index) {
       buff.writeUInt16BE(offset);
       break;
     } else {
-      index[str] = buff.tell();
+      length = buff.tell();
+      if (length <= 16383) {
+        index[str] = length;
+      }
       dot = str.indexOf('.');
       if (dot > -1) {
         part = str.slice(0, dot);
