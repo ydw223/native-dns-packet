@@ -386,6 +386,11 @@ function makeEdns(packet) {
     options: [],
     ttl: 0
   };
+
+  if (packet.header.rcode > 15) {
+    packet.edns.ttl = ((packet.header.rcode - 15) << 24) & 0xFF000000;
+  }
+
   packet.edns_options = packet.edns.options; // TODO: 'edns_options' is DEPRECATED!
   packet.additional.push(packet.edns);
   return WRITE_HEADER;
